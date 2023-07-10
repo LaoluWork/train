@@ -42,7 +42,7 @@ export default defineComponent({
   name: "login-view",
   setup() {
     const loginForm = reactive({
-      mobile: '13000000000',
+      mobile: '13800138000',
       code: '',
     });
 

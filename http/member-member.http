@@ -10,3 +10,7 @@ mobile=2
 
 ###
 
+POST http://localhost:8000/member/member/send-code
+Content-Type: application/x-www-form-urlencoded
+
+mobile=13800138000
