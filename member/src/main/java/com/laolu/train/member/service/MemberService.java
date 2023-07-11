@@ -81,7 +81,7 @@ public class MemberService {
         String code = req.getCode();
         Member memberDB = selectByMobile(mobile);
 
-        // 如果手机号不存在，则插入一条记录
+        // 手机号不存在
         if (ObjectUtil.isNull(memberDB)) {
             throw new BusinessException(BusinessExceptionEnum.MEMBER_MOBILE_NOT_EXIST);
         }
