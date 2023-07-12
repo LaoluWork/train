@@ -42,10 +42,13 @@
 import {defineComponent, reactive} from 'vue';
 import axios from 'axios';
 import {notification} from "ant-design-vue";
+import {useRouter} from 'vue-router'
 
 export default defineComponent({
   name: "login-view",
   setup() {
+    const router = useRouter();
+
     const loginForm = reactive({
       mobile: '13800138000',
       code: '',
@@ -57,10 +60,10 @@ export default defineComponent({
       }).then(response => {
         let data = response.data;
         if (data.success) {
-          notification.success({ description: '发送验证码成功！' });
+          notification.success({description: '发送验证码成功！'});
           loginForm.code = "8888";
         } else {
-          notification.error({ description: data.message });
+          notification.error({description: data.message});
         }
       })
     };
@@ -69,9 +72,11 @@ export default defineComponent({
       axios.post("/member/member/login", loginForm).then((response) => {
         let data = response.data;
         if (data.success) {
-          notification.success({ description: '登录成功！' });
+          notification.success({description: '登录成功！'});
+          // 登录成功之后，跳转到控制台主页，这个路由是对应着vue中router的路由
+          router.push("/")
         } else {
-          notification.error({ description: data.message });
+          notification.error({description: data.message});
         }
       })
     };
