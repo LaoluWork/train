@@ -55,7 +55,6 @@ export default defineComponent({
       axios.post("http://localhost:8000/member/member/send-code", {
         mobile: loginForm.mobile
       }).then(response => {
-        console.log(response);
         let data = response.data;
         if (data.success) {
           notification.success({ description: '发送验证码成功！' });
