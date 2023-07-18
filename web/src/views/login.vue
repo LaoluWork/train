@@ -75,7 +75,7 @@ export default defineComponent({
         if (data.success) {
           notification.success({description: '登录成功！'});
           // 登录成功之后，跳转到控制台主页，这个路由是对应着vue中router的路由
-          router.push("/")
+          router.push("/welcome")
           // 将服务器返回的token值存储到短暂缓存中
           store.commit("setMember", data.content)
         } else {
