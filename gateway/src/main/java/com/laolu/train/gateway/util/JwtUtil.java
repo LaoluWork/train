@@ -18,11 +18,11 @@ public class JwtUtil {
     /**
      * 盐值很重要，不能泄漏，且每个项目都应该不一样，可以放到配置文件中
      */
-    private static final String key = "Jiawa12306";
+    private static final String key = "laolu12306";
 
     public static String createToken(Long id, String mobile) {
         DateTime now = DateTime.now();
-        DateTime expTime = now.offsetNew(DateField.HOUR, 24);
+        DateTime expTime = now.offsetNew(DateField.SECOND, 10);
         Map<String, Object> payload = new HashMap<>();
         // 签发时间
         payload.put(JWTPayload.ISSUED_AT, now);
@@ -39,16 +39,11 @@ public class JwtUtil {
     }
 
     public static boolean validate(String token) {
-        try {
-            JWT jwt = JWTUtil.parseToken(token).setKey(key.getBytes());
-            // validate包含了verify
-            boolean validate = jwt.validate(0);
-            LOG.info("JWT token校验结果：{}", validate);
-            return validate;
-        } catch (Exception e) {
-            LOG.error("JWT token校验异常", e);
-            return false;
-        }
+        JWT jwt = JWTUtil.parseToken(token).setKey(key.getBytes());
+        // validate包含了verify
+        boolean validate = jwt.validate(0);
+        LOG.info("JWT token校验结果：{}", validate);
+        return validate;
     }
 
     public static JSONObject getJSONObject(String token) {
@@ -64,7 +59,7 @@ public class JwtUtil {
     public static void main(String[] args) {
         createToken(1L, "123");
 
-        String token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJuYmYiOjE2NzY4OTk4MjcsIm1vYmlsZSI6IjEyMyIsImlkIjoxLCJleHAiOjE2NzY4OTk4MzcsImlhdCI6MTY3Njg5OTgyN30.JbFfdeNHhxKhAeag63kifw9pgYhnNXISJM5bL6hM8eU";
+        String token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJuYmYiOjE2ODk0MzUwOTMsIm1vYmlsZSI6IjEyMyIsImlkIjoxLCJleHAiOjE2ODk0MzUxMDMsImlhdCI6MTY4OTQzNTA5M30.jfxfLkAuDNbgOFvGxYhwnKb2Pyil-dxrB9bqEpEWf8A";
         validate(token);
 
         getJSONObject(token);
