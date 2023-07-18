@@ -20,15 +20,23 @@
 </template>
 
 <script>
-import {defineComponent, ref} from 'vue';
+import {defineComponent, ref, watch} from 'vue';
+import router from "@/router";
 
 export default defineComponent({
   name: "the-sider-view",
   setup() {
 
+    const selectedKeys = ref([]);
+
+    watch(() => router.currentRoute.value.path, (newValue) => {
+      console.log('watch', newValue);
+      selectedKeys.value = [];
+      selectedKeys.value.push(newValue);
+    }, {immediate: true});
+
     return {
-      selectedKeys1: ref(['2']),
-      openKeys: ref(['sub1']),
+      selectedKeys,
     };
   },
 });
