@@ -41,7 +41,7 @@
                              targetPackage="com.laolu.train.member.mapper"
                              type="XMLMAPPER"/>
 
-        <!--<table tableName="member" domainObjectName="Member"/>-->
-        <table tableName="member" domainObjectName="Member" delimitIdentifiers="true"/>
+<!--        <table tableName="member" domainObjectName="Member" delimitIdentifiers="true"/>-->
+        <table tableName="passenger" domainObjectName="Passenger" delimitIdentifiers="true"/>
     </context>
 </generatorConfiguration>
