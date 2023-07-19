@@ -40,7 +40,7 @@ public class PassengerService {
             criteria.andMemberIdEqualTo(req.getMemberId());
         }
         // 分页操作,对这句往下遇到的第一个SQL做拦截，增加分页limit
-        PageHelper.startPage(2, 3);
+        PageHelper.startPage(req.getPage(), req.getSize());
         List<Passenger> passengerList = passengerMapper.selectByExample(passengerExample);
         return BeanUtil.copyToList(passengerList, PassengerQueryResp.class);
     }

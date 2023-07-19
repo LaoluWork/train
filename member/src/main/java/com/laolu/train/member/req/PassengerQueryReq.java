@@ -1,6 +1,8 @@
 package com.laolu.train.member.req;
 
-public class PassengerQueryReq {
+import com.laolu.train.common.req.PageReq;
+
+public class PassengerQueryReq extends PageReq {
 
     private Long memberId;
 
