@@ -3,6 +3,7 @@ package com.laolu.train.member.service;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.util.ObjectUtil;
+import com.github.pagehelper.PageHelper;
 import com.laolu.train.common.context.LoginMemberContext;
 import com.laolu.train.common.util.SnowUtil;
 import com.laolu.train.member.domain.Passenger;
@@ -38,6 +39,8 @@ public class PassengerService {
         if (ObjectUtil.isNotNull(req)){
             criteria.andMemberIdEqualTo(req.getMemberId());
         }
+        // 分页操作,对这句往下遇到的第一个SQL做拦截，增加分页limit
+        PageHelper.startPage(2, 3);
         List<Passenger> passengerList = passengerMapper.selectByExample(passengerExample);
         return BeanUtil.copyToList(passengerList, PassengerQueryResp.class);
     }
