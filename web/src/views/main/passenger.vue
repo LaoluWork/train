@@ -2,14 +2,22 @@
   <p>
     <a-space>
       <a-button type="primary" @click="handleQuery()">刷新</a-button>
-      <a-button type="primary" @click="showModal">新增</a-button>
+      <a-button type="primary" @click="onAdd">新增</a-button>
     </a-space>
   </p>
   <a-table :dataSource="passengers"
            :columns="columns"
            :pagination="pagination"
            @change="handleTableChange"
-           :loading="loading"/>
+           :loading="loading">
+    <template #bodyCell="{ column, record }">
+      <template v-if="column.dataIndex === 'operation'">
+        <a-space>
+          <a @click="onEdit(record)">编辑</a>
+        </a-space>
+      </template>
+    </template>
+  </a-table>
   <a-modal v-model:visible="visible" title="乘车人" @ok="handleOk"
            ok-text="确认" cancel-text="取消">
     <a-form :model="passenger" :label-col="{span: 4}" :wrapper-col="{ span: 20 }">
@@ -30,7 +38,7 @@
   </a-modal>
 </template>
 <script>
-import {defineComponent, ref, reactive, onMounted} from 'vue';
+import {defineComponent, ref, onMounted} from 'vue';
 import {notification} from "ant-design-vue";
 import axios from "axios";
 
@@ -38,7 +46,7 @@ export default defineComponent({
   name: "passenger-view",
   setup() {
     const visible = ref(false);
-    let passenger = reactive({
+    let passenger = ref({
       id: undefined,
       memberId: undefined,
       name: undefined,
@@ -49,7 +57,7 @@ export default defineComponent({
     });
     const passengers = ref([]);
     // 分页的三个属性名是固定的
-    const pagination = ref({
+    let pagination = ref({
       total: 0,
       current: 1,
       pageSize: 2,
@@ -76,16 +84,26 @@ export default defineComponent({
         title: '旅客类型',
         dataIndex: 'type',
         key: 'type',
+      },
+      {
+        title: '操作',
+        dataIndex: 'operation'
       }
     ];
 
 
-    const showModal = () => {
+    const onAdd = () => {
+      passenger.value = {}
+      visible.value = true;
+    }
+
+    const onEdit = (record) => {
+      passenger.value = window.Tool.copy(record);
       visible.value = true;
     }
 
     const handleOk = () => {
-      axios.post("/member/passenger/save", passenger).then((response) => {
+      axios.post("/member/passenger/save", passenger.value).then((response) => {
         let data = response.data;
         if (data.success) {
           notification.success({description: "保存成功！"});
@@ -149,10 +167,11 @@ export default defineComponent({
       pagination,
       loading,
       columns,
-      showModal,
+      onAdd,
       handleOk,
       handleQuery,
-      handleTableChange
+      handleTableChange,
+      onEdit
     };
   },
 });
