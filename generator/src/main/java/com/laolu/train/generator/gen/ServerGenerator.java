@@ -53,7 +53,7 @@ public class ServerGenerator {
         DbUtil.password = password.getText();
 
         // 示例：表名 laolu_test
-        // Domain = JiawaTest
+        // Domain = laoluTest
         String Domain = domainObjectName.getText();
         // domain = laoluTest
         String domain = Domain.substring(0, 1).toLowerCase() + Domain.substring(1);
@@ -97,7 +97,7 @@ public class ServerGenerator {
 
     private static void genVue(String do_main, Map<String, Object> param) throws IOException, TemplateException {
         FreemarkerUtil.initConfig("vue.ftl");
-        new File(vuePath + module).mkdirs();
+        new File(vuePath).mkdirs();
         String fileName = vuePath + module + "/" + do_main + ".vue";
         System.out.println("开始生成：" + fileName);
         FreemarkerUtil.generator(fileName, param);
