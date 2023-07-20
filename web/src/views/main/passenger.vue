@@ -13,8 +13,21 @@
     <template #bodyCell="{ column, record }">
       <template v-if="column.dataIndex === 'operation'">
         <a-space>
+          <a-popconfirm
+              title="删除后不可恢复，确认删除?"
+              @confirm="onDelete(record)"
+              ok-text="确认" cancel-text="取消">
+            <a style="color: red">删除</a>
+          </a-popconfirm>
           <a @click="onEdit(record)">编辑</a>
         </a-space>
+      </template>
+      <template v-else-if="column.dataIndex === 'type'">
+        <span v-for="item in PASSENGER_TYPE_ARRAY" :key="item.key">
+          <span v-if="item.key === record.type">
+            {{item.value}}
+          </span>
+        </span>
       </template>
     </template>
   </a-table>
@@ -29,9 +42,9 @@
       </a-form-item>
       <a-form-item label="旅客类型">
         <a-select v-model:value="passenger.type">
-          <a-select-option value="1">成人</a-select-option>
-          <a-select-option value="2">儿童</a-select-option>
-          <a-select-option value="3">学生</a-select-option>
+          <a-select-option v-for="item in PASSENGER_TYPE_ARRAY" :key="item.key" :value="item.value">
+            {{item.value}}
+          </a-select-option>
         </a-select>
       </a-form-item>
     </a-form>
@@ -45,6 +58,7 @@ import axios from "axios";
 export default defineComponent({
   name: "passenger-view",
   setup() {
+    const PASSENGER_TYPE_ARRAY = window.PASSENGER_TYPE_ARRAY;
     const visible = ref(false);
     let passenger = ref({
       id: undefined,
@@ -101,6 +115,22 @@ export default defineComponent({
       passenger.value = window.Tool.copy(record);
       visible.value = true;
     }
+
+    const onDelete = (record) => {
+      axios.delete("/member/passenger/delete/" + record.id).then((response) => {
+        const data = response.data;
+        if (data.success) {
+          notification.success({description: "删除成功！"});
+          handleQuery({
+            page: pagination.value.current,
+            size: pagination.value.pageSize,
+          });
+        } else {
+          notification.error({description: data.message});
+        }
+      });
+    };
+
 
     const handleOk = () => {
       axios.post("/member/passenger/save", passenger.value).then((response) => {
@@ -161,6 +191,7 @@ export default defineComponent({
     });
 
     return {
+      PASSENGER_TYPE_ARRAY,
       visible,
       passenger,
       passengers,
@@ -171,7 +202,8 @@ export default defineComponent({
       handleOk,
       handleQuery,
       handleTableChange,
-      onEdit
+      onEdit,
+      onDelete
     };
   },
 });
