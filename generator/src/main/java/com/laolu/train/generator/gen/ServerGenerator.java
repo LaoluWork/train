@@ -14,7 +14,7 @@ import java.io.IOException;
 import java.util.*;
 
 public class ServerGenerator {
-    static boolean readOnly = true;
+    static boolean readOnly = false;
     static String vuePath = "web/src/views/main/";
     static String serverPath = "[module]/src/main/java/com/laolu/train/[module]/";
     static String pomPath = "generator/pom.xml";
