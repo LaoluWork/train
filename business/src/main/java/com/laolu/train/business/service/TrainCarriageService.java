@@ -43,7 +43,6 @@ public class TrainCarriageService {
         TrainCarriage trainCarriage = BeanUtil.copyProperties(req, TrainCarriage.class);
         if (ObjectUtil.isNull(trainCarriage.getId())) {
 
-
             // 保存之前，先校验唯一键是否存在
             TrainCarriage trainCarriageDB = selectByUnique(req.getTrainCode(), req.getIndex());
             if (ObjectUtil.isNotEmpty(trainCarriageDB)) {
