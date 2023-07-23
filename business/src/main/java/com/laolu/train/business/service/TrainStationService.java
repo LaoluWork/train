@@ -85,8 +85,11 @@ public class TrainStationService {
 
     public PageResp<TrainStationQueryResp> queryList(TrainStationQueryReq req) {
         TrainStationExample trainStationExample = new TrainStationExample();
-        trainStationExample.setOrderByClause("id desc");
+        trainStationExample.setOrderByClause("train_code asc, `index` asc");
         TrainStationExample.Criteria criteria = trainStationExample.createCriteria();
+        if (ObjectUtil.isNotEmpty(req.getTrainCode())) {
+            criteria.andTrainCodeEqualTo(req.getTrainCode());
+        }
 
         LOG.info("查询页码：{}", req.getPage());
         LOG.info("每页条数：{}", req.getSize());
@@ -107,5 +110,12 @@ public class TrainStationService {
 
     public void delete(Long id) {
         trainStationMapper.deleteByPrimaryKey(id);
+    }
+
+    public List<TrainStation> selectByTrainCode(String trainCode) {
+        TrainStationExample trainStationExample = new TrainStationExample();
+        trainStationExample.setOrderByClause("`index` asc");
+        trainStationExample.createCriteria().andTrainCodeEqualTo(trainCode);
+        return trainStationMapper.selectByExample(trainStationExample);
     }
 }

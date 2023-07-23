@@ -45,6 +45,7 @@
 <!--        <table tableName="train" domainObjectName="Train" delimitIdentifiers="true"/>-->
 <!--        <table tableName="train_station" domainObjectName="TrainStation" delimitIdentifiers="true"/>-->
 <!--        <table tableName="train_carriage" domainObjectName="TrainCarriage" delimitIdentifiers="true"/>-->
-        <table tableName="train_seat" domainObjectName="TrainSeat" delimitIdentifiers="true"/>
+<!--        <table tableName="train_seat" domainObjectName="TrainSeat" delimitIdentifiers="true"/>-->
+        <table tableName="daily_train" domainObjectName="DailyTrain" delimitIdentifiers="true"/>
     </context>
 </generatorConfiguration>
