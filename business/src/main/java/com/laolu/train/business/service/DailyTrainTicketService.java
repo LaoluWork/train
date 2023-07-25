@@ -118,7 +118,7 @@ public class DailyTrainTicketService {
         }
 
         DateTime now = DateTime.now();
-        // 计算出当前车次每种类型座位的总票数
+        // 计算出当前车次每种类型座位的总票数，如果没有对应的类型座位，得到的结果是-1
         int ydz = dailyTrainSeatService.countSeat(date, trainCode, SeatTypeEnum.YDZ.getCode());
         int edz = dailyTrainSeatService.countSeat(date, trainCode, SeatTypeEnum.EDZ.getCode());
         int rw = dailyTrainSeatService.countSeat(date, trainCode, SeatTypeEnum.RW.getCode());
