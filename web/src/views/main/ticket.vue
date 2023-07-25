@@ -5,7 +5,7 @@
       <a-date-picker v-model:value="params.date" valueFormat="YYYY-MM-DD" placeholder="请选择日期"></a-date-picker>
       <station-select-view v-model="params.start" width="200px"></station-select-view>
       <station-select-view v-model="params.end" width="200px"></station-select-view>
-      <a-button type="primary" @click="handleQuery()">查找</a-button>
+      <a-button type="primary" @click="handleQuery()">查询</a-button>
     </a-space>
   </p>
   <a-table :dataSource="dailyTrainTickets"
@@ -82,7 +82,7 @@ import StationSelectView from "@/components/station-select";
 import dayjs from "dayjs";
 
 export default defineComponent({
-  name: "daily-train-ticket-view",
+  name: "ticket-view",
   components: {StationSelectView, TrainSelectView},
   setup() {
     const visible = ref(false);
@@ -232,7 +232,7 @@ export default defineComponent({
         };
       }
       loading.value = true;
-      axios.get("/business/admin/daily-train-ticket/query-list", {
+      axios.get("/business/daily-train-ticket/query-list", {
         params: {
           page: param.page,
           size: param.size,
