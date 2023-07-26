@@ -1,6 +1,7 @@
 package com.laolu.train.business.service;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateTime;
 import cn.hutool.core.util.EnumUtil;
 import cn.hutool.core.util.NumberUtil;
@@ -205,13 +206,66 @@ public class ConfirmOrderService {
             List<DailyTrainSeat> seatList = dailyTrainSeatService.selectByCarriage(date, trainCode, dailyTrainCarriage.getIndex());
             LOG.info("车厢{}的座位个数为：{}", dailyTrainCarriage.getIndex(), seatList.size());
 
-            for (DailyTrainSeat dailyTrainSeat: seatList) {
+            for (int i = 0; i < seatList.size(); i++) {
+                DailyTrainSeat dailyTrainSeat = seatList.get(i);
+                Integer seatIndex = dailyTrainSeat.getCarriageSeatIndex();
+                String col = dailyTrainSeat.getCol();
+
+                // 先判断是否有指定选座，如有就要判断当前座位的列值是否选座要求
+                if (StrUtil.isBlank(column)) {
+                    LOG.info("无选座");
+                } else {
+                    if (!col.equals(column)) {
+                        LOG.info("座位{}列值不对，继续判断下一个座位，当前列值：{}，目标列值：{}", seatIndex, col, column);
+                        continue;
+                    }
+
+                }
+                // 无论是否指定选座，都要执行和判断当前座位的是否可以售卖
                 boolean isChoose = calSell(dailyTrainSeat, startIndex, endIndex);
                 if (isChoose) {
                     LOG.info("选中座位");
                 } else {
-
+                    continue;
                 }
+
+                // 如果offset不为空，那就根据offset继续选剩下的座位
+                boolean isGetAllOffsetSeat = true;  // 用来标记offset里的所有座位是否都成功选上了
+                if (CollUtil.isNotEmpty(offsetList)) {
+                    LOG.info("有偏移值：{}，校验偏移的座位是否可选", offsetList);
+                    // 因为第一个座位已经在上面选中了，剩下的座位都是根据第一个座位的偏移量来寻找的
+                    for (int j = 1; j < offsetList.size(); j++) {
+                        // 计算下一个座位的索引
+                        int nextIndex = i + offsetList.get(j);
+
+                        // 因为可能会超出当前车厢，必要要在同一个车厢
+                        if (nextIndex >= seatList.size()) {
+                            LOG.info("座位{}不可选，偏移后的索引超出了当前车厢的座位数", nextIndex);
+                            isGetAllOffsetSeat = false;
+                            break;
+                        }
+                        DailyTrainSeat nextDailyTrainSeat = seatList.get(nextIndex);
+                        // 然后去判断当前座位是否可以售卖
+                        boolean isChooseNext = calSell(nextDailyTrainSeat, startIndex, endIndex);
+                        if (isChooseNext) {
+                            LOG.info("座位{}被选中", nextDailyTrainSeat.getCarriageSeatIndex());
+                        } else {
+                            LOG.info("座位{}不可选", nextDailyTrainSeat.getCarriageSeatIndex());
+                            isGetAllOffsetSeat = false;
+                            break;
+                        }
+
+
+                    }
+                }
+
+                // 判断offset的所有座位是否已经选上了，如果不是，就不需要执行保存买票
+                if (!isGetAllOffsetSeat) {
+                    continue;
+                }
+
+                // 保存选好的座位
+                return;
             }
 
         }
@@ -231,6 +285,7 @@ public class ConfirmOrderService {
     private boolean calSell(DailyTrainSeat dailyTrainSeat, Integer startIndex, Integer endIndex) {
         // 00001, 00000
         String sell = dailyTrainSeat.getSell();
+        LOG.warn("sell: {}, startIndex: {}, endIndex: {}", sell, startIndex, endIndex);
         //  000, 000
         String sellPart = sell.substring(startIndex, endIndex);
         if (Integer.parseInt(sellPart) > 0) {
