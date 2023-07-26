@@ -67,36 +67,36 @@ export default defineComponent({
       trainCode: null
     });
     const columns = [
-    {
-      title: '车次编号',
-      dataIndex: 'trainCode',
-      key: 'trainCode',
-    },
-    {
-      title: '厢序',
-      dataIndex: 'carriageIndex',
-      key: 'carriageIndex',
-    },
-    {
-      title: '排号',
-      dataIndex: 'row',
-      key: 'row',
-    },
-    {
-      title: '列号',
-      dataIndex: 'col',
-      key: 'col',
-    },
-    {
-      title: '座位类型',
-      dataIndex: 'seatType',
-      key: 'seatType',
-    },
-    {
-      title: '同车厢座序',
-      dataIndex: 'carriageSeatIndex',
-      key: 'carriageSeatIndex',
-    },
+      {
+        title: '车次编号',
+        dataIndex: 'trainCode',
+        key: 'trainCode',
+      },
+      {
+        title: '厢序',
+        dataIndex: 'carriageIndex',
+        key: 'carriageIndex',
+      },
+      {
+        title: '排号',
+        dataIndex: 'row',
+        key: 'row',
+      },
+      {
+        title: '列号',
+        dataIndex: 'col',
+        key: 'col',
+      },
+      {
+        title: '座位类型',
+        dataIndex: 'seatType',
+        key: 'seatType',
+      },
+      {
+        title: '同车厢座序',
+        dataIndex: 'carriageSeatIndex',
+        key: 'carriageSeatIndex',
+      },
     ];
 
 
@@ -128,11 +128,12 @@ export default defineComponent({
       });
     };
 
-    const handleTableChange = (pagination) => {
+    const handleTableChange = (page) => {
       // console.log("看看自带的分页参数都有啥：" + pagination);
+      pagination.value.pageSize = page.pageSize;
       handleQuery({
-        page: pagination.current,
-        size: pagination.pageSize
+        page: page.current,
+        size: page.pageSize
       });
     };
 

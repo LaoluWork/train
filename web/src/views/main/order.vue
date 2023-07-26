@@ -12,7 +12,7 @@
       <span v-for="item in seatTypes" :key="item.type">
         <span>{{ item.desc }}</span>：
         <span class="order-train-ticket-main">{{ item.price }}￥</span>&nbsp;
-        <span class="order-train-ticket-main">{{ item.count }}</span>&nbsp;张票&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        &nbsp;剩余&nbsp;<span class="order-train-ticket-main">{{ item.count }}</span>&nbsp;张票&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
       </span>
     </div>
   </div>
@@ -140,7 +140,15 @@ export default defineComponent({
       }
     }
     console.log("本车次提供的座位：", seatTypes)
-
+    // 购票列表，用于界面展示，并传递到后端接口，用来描述：哪个乘客购买什么座位的票
+    // {
+    //   passengerId: 123,
+    //   passengerType: "1",
+    //   passengerName: "张三",
+    //   passengerIdCard: "12323132132",
+    //   seatTypeCode: "1",
+    //   seat: "C1"
+    // }
     const tickets = ref([]);
     const PASSENGER_TYPE_ARRAY = window.PASSENGER_TYPE_ARRAY;
     const visible = ref(false);
@@ -299,6 +307,22 @@ export default defineComponent({
       }
 
       console.log("最终购票：", tickets.value);
+
+      axios.post("/business/confirm-order/do", {
+        dailyTrainTicketId: dailyTrainTicket.id,
+        date: dailyTrainTicket.date,
+        trainCode: dailyTrainTicket.trainCode,
+        start: dailyTrainTicket.start,
+        end: dailyTrainTicket.end,
+        tickets: tickets.value
+      }).then((response) => {
+        let data = response.data;
+        if (data.success) {
+          notification.success({description: "下单成功！"});
+        } else {
+          notification.error({description: data.message});
+        }
+      });
     }
 
     onMounted(() => {
