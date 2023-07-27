@@ -50,6 +50,9 @@ public class ConfirmOrderService {
     @Resource
     private DailyTrainSeatService dailyTrainSeatService;
 
+    @Resource
+    private AfterConfirmOrderService afterConfirmOrderService;
+
     public void save(ConfirmOrderDoReq req) {
         DateTime now = DateTime.now();
         ConfirmOrder confirmOrder = BeanUtil.copyProperties(req, ConfirmOrder.class);
@@ -166,31 +169,26 @@ public class ConfirmOrderService {
                     dailyTrainTicket.getStartIndex(),
                     dailyTrainTicket.getEndIndex());
 
-        }else {
+        }else {  // 这里是前端没有指定座位的选座，所以需要对每一张票都执行一遍选座方法，因为不一定所有票都是同一类型
             LOG.info("本次购票用户没有指定座位");
 
-            selectSeat(finalSeatList,
-                    date,
-                    trainCode,
-                    ticketReq0.getSeatTypeCode(),
-                    null,
-                    null,
-                    dailyTrainTicket.getStartIndex(),
-                    dailyTrainTicket.getEndIndex());
+            for (ConfirmOrderTicketReq ticketReq: tickets) {
+                selectSeat(finalSeatList,
+                        date,
+                        trainCode,
+                        ticketReq0.getSeatTypeCode(),
+                        null,
+                        null,
+                        dailyTrainTicket.getStartIndex(),
+                        dailyTrainTicket.getEndIndex());
+            }
 
         }
 
+        LOG.info("最终选座：{}", finalSeatList);
 
-        // 选座
-            //一个车箱一个车箱的获取座位数据
-
-            //挑选符合条件的座位，如果这个车箱不满足，则进入下个车箱（多个选座应该在同一个车厢）
-
-        //选中座位后事务处理：
-            //座位表修改售卖情况seL;
-            //余票详情表修改余票；
-            //为会员增加购票记录
-            //更新确认订单为成功
+        // 将最终选座结果更新到数据库中
+        afterConfirmOrderService.afterDoConfirm(dailyTrainTicket, finalSeatList);
 
     }
 
