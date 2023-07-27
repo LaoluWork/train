@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import {createRouter, createWebHistory} from 'vue-router'
 
 const routes = [{
     path: '/',
@@ -32,7 +32,7 @@ const routes = [{
         children: [{
             path: 'confirm-order',
             component: () => import('../views/main/business/confirm-order.vue'),
-        },{
+        }, {
             path: 'daily-train',
             component: () => import('../views/main/business/daily-train.vue'),
         }, {
@@ -54,11 +54,17 @@ const routes = [{
             path: 'job',
             component: () => import('../views/main/batch/job.vue')
         }]
+    }, {
+        path: 'member/',
+        children: [{
+            path: 'ticket',
+            component: () => import('../views/main/member/ticket.vue')
+        }]
     }]
 }, {
-    path: '',
-    redirect: '/welcome'
-}];
+        path: '',
+        redirect: '/welcome'
+    }];
 
 const router = createRouter({
     history: createWebHistory(process.env.BASE_URL),

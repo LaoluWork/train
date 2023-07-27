@@ -42,6 +42,7 @@
                              type="XMLMAPPER"/>
 
 <!--        <table tableName="member" domainObjectName="Member" delimitIdentifiers="true"/>-->
-        <table tableName="passenger" domainObjectName="Passenger" delimitIdentifiers="true"/>
+<!--        <table tableName="passenger" domainObjectName="Passenger" delimitIdentifiers="true"/>-->
+        <table tableName="ticket" domainObjectName="Ticket" delimitIdentifiers="true"/>
     </context>
 </generatorConfiguration>
