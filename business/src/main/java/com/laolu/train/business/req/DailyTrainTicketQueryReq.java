@@ -4,6 +4,7 @@ import com.laolu.train.common.req.PageReq;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.util.Date;
+import java.util.Objects;
 
 public class DailyTrainTicketQueryReq extends PageReq {
 
@@ -50,6 +51,21 @@ public class DailyTrainTicketQueryReq extends PageReq {
 
     public void setStart(String start) {
         this.start = start;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        DailyTrainTicketQueryReq that = (DailyTrainTicketQueryReq) o;
+        return trainCode.equals(that.trainCode)
+                && start.equals(that.start) && end.equals(that.end)
+                && getPage().equals(that.getPage()) && getSize().equals(that.getSize());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(date, trainCode, start, end, getPage(), getSize());
     }
 
     public String getEnd() {

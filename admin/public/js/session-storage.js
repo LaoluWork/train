@@ -1,3 +1,6 @@
+//用来缓存火车车次数据，session级别
+SESSION_ALL_TRAIN = "SESSION_ALL_TRAIN";
+
 SessionStorage = {
     get: function (key) {
         var v = sessionStorage.getItem(key);
