@@ -32,7 +32,7 @@
         <train-select-view v-model="trainStation.trainCode"></train-select-view>
       </a-form-item>
       <a-form-item label="站序">
-        <a-input v-model:value="trainStation.index" />
+        <a-input v-model:value="trainStation.index" placeholder="站序必须从0开始" />
       </a-form-item>
       <a-form-item label="站名">
         <station-select-view v-model="trainStation.name"></station-select-view>

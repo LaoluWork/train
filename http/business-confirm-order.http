@@ -3,17 +3,17 @@ Content-Type: application/json
 token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJuYmYiOjE2OTA1NDAwMDcsIm1vYmlsZSI6IjEzODAwMTM4MDAwIiwiaWQiOjE2Nzg0MjU5MzA5MTk0NDg1NzYsImV4cCI6MTY5MDYyNjQwNywiaWF0IjoxNjkwNTQwMDA3fQ.o8b5B1XTziPOORabMRgcs0j8XXfO0Yn8D7EXLmx4qZg
 
 {
-  "dailyTrainTicketId": 1684402145593528320,
-  "date": 1690300800000,
-  "end": "武汉",
+  "dailyTrainTicketId": 1685184298375843840,
+  "date": 1690560000000,
+  "end": "郑州",
   "start": "广州",
   "tickets": [
     {
-      "passengerId": 1681622887833931776,
-      "passengerIdCard": "123321",
-      "passengerName": "张三",
-      "passengerType": "1",
-      "seatTypeCode": "1"
+      "passengerId": 1685168370137305088,
+      "passengerIdCard": "550",
+      "passengerName": "李四",
+      "passengerType": "2",
+      "seatTypeCode": "2"
     }
   ],
   "trainCode": "D1"
