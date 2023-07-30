@@ -7,6 +7,8 @@ import cn.hutool.core.util.EnumUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import com.alibaba.csp.sentinel.annotation.SentinelResource;
+import com.alibaba.csp.sentinel.slots.block.BlockException;
 import com.alibaba.fastjson.JSON;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -103,6 +105,7 @@ public class ConfirmOrderService {
         confirmOrderMapper.deleteByPrimaryKey(id);
     }
 
+    @SentinelResource(value = "doConfirm", blockHandler = "doConfirmBlock")
     public void doConfirm(ConfirmOrderDoReq req) {
         //省略业务数据校验，如：车次是否存在，余票是否存在，车次是否在有效期内，ticket是否
 
@@ -428,4 +431,15 @@ public class ConfirmOrderService {
             }
         }
     }
+
+    /**
+     * 降级方法，需包含限流方法的所有参数和BlockException参数
+     * @param req
+     * @param e
+     */
+    public void doConfirmBlock(ConfirmOrderDoReq req, BlockException e) {
+        LOG.info("购票请求被限流：{}", req);
+        throw new BusinessException(BusinessExceptionEnum.CONFIRM_ORDER_FLOW_EXCEPTION);
+    }
+
 }
