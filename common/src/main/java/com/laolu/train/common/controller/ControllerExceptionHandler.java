@@ -70,5 +70,14 @@ public class ControllerExceptionHandler {
         return commonResp;
     }
 
+    /**
+     * 测试熔断的两种异常策略
+     */
+//    @ExceptionHandler(value = RuntimeException.class)
+//    @ResponseBody
+//    public CommonResp exceptionHandler(RuntimeException e) {
+//       throw e;
+//    }
+
 
 }
