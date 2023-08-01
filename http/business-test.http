@@ -12,3 +12,7 @@ Accept: application/json
 ###
 DELETE http://localhost:8000/business/admin/train/delete/555
 Accept: application/json
+
+###
+GET http://localhost:8000/business/kaptcha/image-code/123
+Accept: application/json

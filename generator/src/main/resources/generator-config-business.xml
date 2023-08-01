@@ -23,9 +23,9 @@
 
         <!-- 配置数据源，需要根据自己的项目修改 -->
         <jdbcConnection driverClass="com.mysql.cj.jdbc.Driver"
-                        connectionURL="jdbc:mysql://121.37.183.240/train_business?serverTimezone=Asia/Shanghai"
+                        connectionURL="jdbc:mysql://rm-wz9u9j9f9t9u6916smo.mysql.rds.aliyuncs.com/train_business?serverTimezone=Asia/Shanghai"
                         userId="train_business"
-                        password="train_business">
+                        password="train_business12306">
         </jdbcConnection>
 
         <!-- domain类的位置 targetProject是相对pom.xml的路径-->
@@ -51,6 +51,7 @@
 <!--        <table tableName="daily_train_carriage" domainObjectName="DailyTrainCarriage" delimitIdentifiers="true"/>-->
 <!--        <table tableName="daily_train_seat" domainObjectName="DailyTrainSeat" delimitIdentifiers="true"/>-->
 <!--        <table tableName="daily_train_ticket" domainObjectName="DailyTrainTicket" delimitIdentifiers="true"/>-->
-        <table tableName="confirm_order" domainObjectName="ConfirmOrder" delimitIdentifiers="true"/>
+<!--        <table tableName="confirm_order" domainObjectName="ConfirmOrder" delimitIdentifiers="true"/>-->
+        <table tableName="sk_token" domainObjectName="SkToken" delimitIdentifiers="true"/>
     </context>
 </generatorConfiguration>
