@@ -10,7 +10,6 @@ import com.laolu.train.business.mapper.ConfirmOrderMapper;
 import com.laolu.train.business.mapper.DailyTrainSeatMapper;
 import com.laolu.train.business.mapper.cust.DailyTrainTicketMapperCust;
 import com.laolu.train.business.req.ConfirmOrderTicketReq;
-import com.laolu.train.common.context.LoginMemberContext;
 import com.laolu.train.common.req.MemberTicketReq;
 import com.laolu.train.common.resp.CommonResp;
 import io.seata.core.context.RootContext;
@@ -108,7 +107,7 @@ public class AfterConfirmOrderService {
 
             // 调用会员服务接口，为会员增加一张车票
             MemberTicketReq memberTicketReq = new MemberTicketReq();
-            memberTicketReq.setMemberId(LoginMemberContext.getId());
+            memberTicketReq.setMemberId(confirmOrder.getMemberId());
             memberTicketReq.setPassengerId(tickets.get(j).getPassengerId());
             memberTicketReq.setPassengerName(tickets.get(j).getPassengerName());
             memberTicketReq.setTrainDate(dailyTrainTicket.getDate());
