@@ -6,7 +6,8 @@ public enum ConfirmOrderStatusEnum {
     PENDING("P", "处理中"),
     SUCCESS("S", "成功"),
     FAILURE("F", "失败"),
-    EMPTY("E", "无票"),
+    SEAT_EMPTY("SE", "无票"),
+    LOCATION_EMPTY("LE", "余票不满足所选位置"),
     CANCEL("C", "取消");
 
     private String code;

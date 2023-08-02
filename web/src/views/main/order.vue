@@ -425,6 +425,11 @@ export default defineComponent({
                 lineModalVisible.value = false;
                 clearInterval(queryLineCountInterval);
                 break;
+              case -5:
+                notification.error({description: "抱歉，余票已无法满足你所选座位的相对位置！"});
+                lineModalVisible.value = false;
+                clearInterval(queryLineCountInterval);
+                break;
               default:
                 confirmOrderLineCount.value = result;
             }

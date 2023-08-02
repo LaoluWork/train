@@ -167,7 +167,11 @@ public class ConfirmOrderService {
                     } catch (BusinessException e) {  // 因为sell方法会抛出余票不足的异常，但是不需要返回给前端了，因为前端会轮询自动查询
                         if (e.getE().equals(BusinessExceptionEnum.CONFIRM_ORDER_TICKET_COUNT_ERROR)) {
                             LOG.info("本订单余票不足，继续售卖下一个订单");
-                            confirmOrder.setStatus(ConfirmOrderStatusEnum.EMPTY.getCode());
+                            confirmOrder.setStatus(ConfirmOrderStatusEnum.SEAT_EMPTY.getCode());
+                            updateStatus(confirmOrder);
+                        } else if (e.getE().equals(BusinessExceptionEnum.CONFIRM_ORDER_TICKET_SEAT_ERROR)) {
+                            LOG.info("余票无法满足所选座位的相对位置，继续售卖下一个订单");
+                            confirmOrder.setStatus(ConfirmOrderStatusEnum.LOCATION_EMPTY.getCode());
                             updateStatus(confirmOrder);
                         } else {
                             throw e;
@@ -190,11 +194,11 @@ public class ConfirmOrderService {
 
     private void sell(ConfirmOrder confirmOrder) {
         // 为了演示排队效果，每次出票增加300毫秒延时
-        try {
-            Thread.sleep(300);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+//        try {
+//            Thread.sleep(300);
+//        } catch (InterruptedException e) {
+//            throw new RuntimeException(e);
+//        }
         // 构造ConfirmOrderDoReq
         ConfirmOrderDoReq req = new ConfirmOrderDoReq();
         req.setMemberId(confirmOrder.getMemberId());
@@ -225,7 +229,7 @@ public class ConfirmOrderService {
         DailyTrainTicket dailyTrainTicket = dailyTrainTicketService.selectByUnique(date, trainCode, start, end);
         LOG.info("查出余票记录：{}", dailyTrainTicket);
 
-        //扣减余票数量，并判断余票是否足够
+        //扣减余票数量，并判断余票是否足够（这里的票数充足是不考虑指定座位列的）
         reduceTickets(req, dailyTrainTicket);
 
         // 最终的选座结果
@@ -279,7 +283,7 @@ public class ConfirmOrderService {
                 selectSeat(finalSeatList,
                         date,
                         trainCode,
-                        ticketReq0.getSeatTypeCode(),
+                        ticketReq.getSeatTypeCode(),
                         null,
                         null,
                         dailyTrainTicket.getStartIndex(),
@@ -289,6 +293,11 @@ public class ConfirmOrderService {
         }
 
         LOG.info("最终选座：{}", finalSeatList);
+
+        // 判断最终的选座结果是否为空，为空则表明指定座位选的票没有符合的了
+        if (CollUtil.isEmpty(finalSeatList)) {
+            throw new BusinessException(BusinessExceptionEnum.CONFIRM_ORDER_TICKET_SEAT_ERROR);
+        }
 
         try {
             // 将最终选座结果更新到数据库中
@@ -517,8 +526,9 @@ public class ConfirmOrderService {
             case PENDING -> 0; // 排队0
             case SUCCESS -> -1; // 成功
             case FAILURE -> -2; // 失败
-            case EMPTY -> -3; // 无票
+            case SEAT_EMPTY -> -3; // 无票
             case CANCEL -> -4; // 取消
+            case LOCATION_EMPTY -> -5; // 余票不满足所选位置
             case INIT -> 9999; // 需要查表得到实际排队数量
         };
 
