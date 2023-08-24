@@ -17,17 +17,17 @@
       </a-menu-item>
       <a-menu-item key="/ticket">
         <router-link to="/ticket">
-          <user-outlined /> &nbsp; 余票查询
+          <border-outer-outlined /> &nbsp; 余票查询
         </router-link>
       </a-menu-item>
       <a-menu-item key="/my-ticket">
         <router-link to="/my-ticket">
-          <user-outlined /> &nbsp; 我的车票
+          <idcard-outlined /> &nbsp; 我的车票
         </router-link>
       </a-menu-item>
       <a-menu-item key="/seat">
         <router-link to="/seat">
-          <user-outlined /> &nbsp; 座位销售图
+          <usergroup-add-outlined /> &nbsp; 座位销售图
         </router-link>
       </a-menu-item>
     </a-menu>
