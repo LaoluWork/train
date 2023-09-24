@@ -3,18 +3,15 @@ package com.laolu.train.business.service;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateTime;
-import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.EnumUtil;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
-import com.alibaba.csp.sentinel.annotation.SentinelResource;
 import com.alibaba.csp.sentinel.slots.block.BlockException;
 import com.alibaba.fastjson.JSON;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.laolu.train.business.domain.*;
-import com.laolu.train.business.dto.ConfirmOrderMQDto;
 import com.laolu.train.business.enums.ConfirmOrderStatusEnum;
 import com.laolu.train.business.enums.SeatColEnum;
 import com.laolu.train.business.enums.SeatTypeEnum;
@@ -28,19 +25,19 @@ import com.laolu.train.common.exception.BusinessExceptionEnum;
 import com.laolu.train.common.resp.PageResp;
 import com.laolu.train.common.util.SnowUtil;
 import jakarta.annotation.Resource;
-import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 @Service
 public class ConfirmOrderService {
@@ -67,6 +64,9 @@ public class ConfirmOrderService {
 
     @Resource
     private RedissonClient redissonClient;
+
+    @Autowired
+    private ThreadPoolTaskExecutor threadPoolTaskExecutor;
 
     public void save(ConfirmOrderDoReq req) {
         DateTime now = DateTime.now();
@@ -108,86 +108,25 @@ public class ConfirmOrderService {
         confirmOrderMapper.deleteByPrimaryKey(id);
     }
 
-    @Async
-    @SentinelResource(value = "doConfirm", blockHandler = "doConfirmBlock")
-    public void doConfirm(ConfirmOrderMQDto dto) {
-        MDC.put("LOG_ID", dto.getLogId());
-        LOG.info("异步出票开始：{}", dto);
-        // 获取分布式锁的key
-        String lockKey = DateUtil.formatDate(dto.getDate()) + "-" + dto.getTrainCode();
-        RLock lock = null;
+    @Transactional
+    public void doConfirm(ConfirmOrder confirmOrder) {
+        MDC.put("LOG_ID", confirmOrder.getLogId());
+        LOG.info("异步出票开始：{}", confirmOrder);
+
         try {
-            // // 使用redisson，自带看门狗
-            lock = redissonClient.getLock(lockKey);
-            // /**
-            //   waitTime – the maximum time to acquire the lock 等待获取锁时间(最大尝试获得锁的时间)，超时返回false
-            //   leaseTime – lease time 锁时长，即n秒后自动释放锁
-            //   time unit – time unit 时间单位
-            //  */
-//            boolean tryLock = lock.tryLock(30, 10, TimeUnit.SECONDS); // 不带看门狗
-            boolean tryLock = lock.tryLock(0, TimeUnit.SECONDS); // 带看门狗，如果线程获取不到锁，这里不等待，直接结束
-            if (tryLock) {
-                LOG.info("恭喜，抢到锁了！");
-                // 可以把下面这段放开，只用一个线程来测试，看看redisson的看门狗效果
-//                 for (int i = 0; i < 30; i++) {
-//                     Long expire = stringRedisTemplate.opsForValue().getOperations().getExpire(lockKey);
-//                     LOG.info("锁过期时间还有：{}", expire);
-//                     Thread.sleep(1000);
-//                 }
+            sell(confirmOrder);
+        } catch (BusinessException e) {  // 因为sell方法会抛出余票不足的异常，但是不需要返回给前端了，因为前端会轮询自动查询
+            if (e.getE().equals(BusinessExceptionEnum.CONFIRM_ORDER_TICKET_COUNT_ERROR)) {
+                LOG.info("本订单余票不足，继续售卖下一个订单");
+                confirmOrder.setStatus(ConfirmOrderStatusEnum.SEAT_EMPTY.getCode());
+                updateStatus(confirmOrder);
+            } else if (e.getE().equals(BusinessExceptionEnum.CONFIRM_ORDER_TICKET_SEAT_ERROR)) {
+                LOG.info("余票无法满足所选座位的相对位置，继续售卖下一个订单");
+                confirmOrder.setStatus(ConfirmOrderStatusEnum.LOCATION_EMPTY.getCode());
+                updateStatus(confirmOrder);
             } else {
-                // 只是没抢到锁，并不知道票抢完了没，所以提示稍候再试
-//                LOG.info("很遗憾，没抢到锁");
-//                throw new BusinessException(BusinessExceptionEnum.CONFIRM_ORDER_LOCK_FAIL);
-                LOG.info("没抢到锁，有其它消费线程正在出票，不做任何处理");
-                return;
+                throw e;
             }
-
-            while (true) {
-                // 取确认订单表的记录，同日期车次，状态是I，分页处理，每次取N条
-                ConfirmOrderExample confirmOrderExample = new ConfirmOrderExample();
-                confirmOrderExample.setOrderByClause("id asc");
-                ConfirmOrderExample.Criteria criteria = confirmOrderExample.createCriteria();
-                criteria.andDateEqualTo(dto.getDate())
-                        .andTrainCodeEqualTo(dto.getTrainCode())
-                        .andStatusEqualTo(ConfirmOrderStatusEnum.INIT.getCode());
-                PageHelper.startPage(1, 5);
-                List<ConfirmOrder> list = confirmOrderMapper.selectByExampleWithBLOBs(confirmOrderExample);
-
-                if (CollUtil.isEmpty(list)) {
-                    LOG.info("没有需要处理的订单，结束循环");
-                    break;
-                } else {
-                    LOG.info("本次处理{}条订单", list.size());
-                }
-
-                // 一条一条的卖
-                list.forEach(confirmOrder -> {
-                    try {
-                        sell(confirmOrder);
-                    } catch (BusinessException e) {  // 因为sell方法会抛出余票不足的异常，但是不需要返回给前端了，因为前端会轮询自动查询
-                        if (e.getE().equals(BusinessExceptionEnum.CONFIRM_ORDER_TICKET_COUNT_ERROR)) {
-                            LOG.info("本订单余票不足，继续售卖下一个订单");
-                            confirmOrder.setStatus(ConfirmOrderStatusEnum.SEAT_EMPTY.getCode());
-                            updateStatus(confirmOrder);
-                        } else if (e.getE().equals(BusinessExceptionEnum.CONFIRM_ORDER_TICKET_SEAT_ERROR)) {
-                            LOG.info("余票无法满足所选座位的相对位置，继续售卖下一个订单");
-                            confirmOrder.setStatus(ConfirmOrderStatusEnum.LOCATION_EMPTY.getCode());
-                            updateStatus(confirmOrder);
-                        } else {
-                            throw e;
-                        }
-                    }
-                });
-            }
-
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } finally {
-            // 释放锁，不能释放不属于当前自己线程的锁
-            if (null != lock && lock.isHeldByCurrentThread()) {
-                lock.unlock();
-            }
-
         }
 
     }
@@ -310,6 +249,7 @@ public class ConfirmOrderService {
 
     /**
      * 更新状态
+     *
      * @param confirmOrder
      */
     public void updateStatus(ConfirmOrder confirmOrder) {
@@ -507,6 +447,7 @@ public class ConfirmOrderService {
 
     /**
      * 降级方法，需包含限流方法的所有参数和BlockException参数
+     *
      * @param req
      * @param e
      */
@@ -516,43 +457,35 @@ public class ConfirmOrderService {
     }
 
     /**
-     * 查询前面有几个人在排队
+     * 查询当前订单的状态
+     *
      * @param id
      */
     public Integer queryLineCount(Long id) {
         ConfirmOrder confirmOrder = confirmOrderMapper.selectByPrimaryKey(id);
-        ConfirmOrderStatusEnum statusEnum = EnumUtil.getBy(ConfirmOrderStatusEnum::getCode, confirmOrder.getStatus());
+        ConfirmOrderStatusEnum statusEnum = ConfirmOrderStatusEnum.INIT;
+        if (confirmOrder != null) {
+            statusEnum = EnumUtil.getBy(ConfirmOrderStatusEnum::getCode, confirmOrder.getStatus());
+        }
         int result = switch (statusEnum) {
-            case PENDING -> 0; // 排队0
+            case PENDING -> 0; // 正在出票中
             case SUCCESS -> -1; // 成功
             case FAILURE -> -2; // 失败
             case SEAT_EMPTY -> -3; // 无票
             case CANCEL -> -4; // 取消
             case LOCATION_EMPTY -> -5; // 余票不满足所选位置
-            case INIT -> 9999; // 需要查表得到实际排队数量
+            case INIT -> 9999; // 表示正在排队中
         };
 
-        if (result == 9999) {
-            // 排在第几位，下面的写法：where a=1 and (b=1 or c=1) 等价于 where (a=1 and b=1) or (a=1 and c=1)
-            ConfirmOrderExample confirmOrderExample = new ConfirmOrderExample();
-            confirmOrderExample.or().andDateEqualTo(confirmOrder.getDate())
-                    .andTrainCodeEqualTo(confirmOrder.getTrainCode())
-                    .andCreateTimeLessThan(confirmOrder.getCreateTime())
-                    .andStatusEqualTo(ConfirmOrderStatusEnum.INIT.getCode());
-            confirmOrderExample.or().andDateEqualTo(confirmOrder.getDate())
-                    .andTrainCodeEqualTo(confirmOrder.getTrainCode())
-                    .andCreateTimeLessThan(confirmOrder.getCreateTime())
-                    .andStatusEqualTo(ConfirmOrderStatusEnum.PENDING.getCode());
-            return Math.toIntExact(confirmOrderMapper.countByExample(confirmOrderExample));
-        } else {
-            return result;
-        }
+        return result;
     }
 
     /**
      * 取消排队，只有I状态才能取消排队，所以按状态更新
+     *
      * @param id
      */
+    @Transactional
     public Integer cancel(Long id) {
         ConfirmOrderExample confirmOrderExample = new ConfirmOrderExample();
         ConfirmOrderExample.Criteria criteria = confirmOrderExample.createCriteria();

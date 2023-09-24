@@ -1,11 +1,14 @@
 POST http://localhost:8000/business/confirm-order/do
 Content-Type: application/json
-token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJuYmYiOjE2OTA5MDAyNzEsIm1vYmlsZSI6IjEzODAwMTM4MDAwIiwiaWQiOjE2ODUxNTYzODA1OTc2ODYyNzIsImV4cCI6MTY5MDk4NjY3MSwiaWF0IjoxNjkwOTAwMjcxfQ.sbGxdCvWf0gUbZW494CDevg9BKN4kvpwrmggQPHrU80
+token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJuYmYiOjE2OTU1MjYxNzIsIm1vYmlsZSI6IjEzODAwMTM4MDAwIiwiaWQiOjE2ODUxNTYzODA1OTc2ODYyNzIsImV4cCI6MTY5NTYxMjU3MiwiaWF0IjoxNjk1NTI2MTcyfQ.9sJJdno6WmNIVqvU0GSKk0UuSiBVT2oJD5IBpI6WZFg
 
 {
-  "dailyTrainTicketId": 1685184298375843840,
-  "date": 1690560000000,
-  "end": "郑州",
+  "dailyTrainTicketId": 1705417777168388096,
+  "date": 1696435200000,
+  "end": "武汉",
+  "imageCode": "bfwn",
+  "imageCodeToken": "Oqpwdgkv",
+  "lineNumber": 0,
   "start": "广州",
   "tickets": [
     {
@@ -16,9 +19,7 @@ token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJuYmYiOjE2OTA5MDAyNzEsIm1vYmlsZSI6
       "seatTypeCode": "2"
     }
   ],
-  "trainCode": "D1",
-  "imageCode": "6666",
-  "imageCodeToken": "123"
+  "trainCode": "D1"
 }
 
 ###

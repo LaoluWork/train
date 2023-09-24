@@ -25,6 +25,19 @@ public class ConfirmOrder {
 
     private String tickets;
 
+    /**
+     * 日志流程号，用于同转异时，用同一个流水号
+     */
+    private String logId;
+
+    public String getLogId() {
+        return logId;
+    }
+
+    public void setLogId(String logId) {
+        this.logId = logId;
+    }
+
     public Long getId() {
         return id;
     }
@@ -130,6 +143,7 @@ public class ConfirmOrder {
         sb.append(", createTime=").append(createTime);
         sb.append(", updateTime=").append(updateTime);
         sb.append(", tickets=").append(tickets);
+        sb.append(", logId=").append(logId);
         sb.append("]");
         return sb.toString();
     }

@@ -5,9 +5,8 @@ import com.alibaba.csp.sentinel.annotation.SentinelResource;
 import com.alibaba.csp.sentinel.slots.block.BlockException;
 import com.alibaba.fastjson.JSON;
 import com.laolu.train.business.domain.ConfirmOrder;
-import com.laolu.train.business.dto.ConfirmOrderMQDto;
 import com.laolu.train.business.enums.ConfirmOrderStatusEnum;
-import com.laolu.train.business.mapper.ConfirmOrderMapper;
+import com.laolu.train.business.rabbitMQ.ConfirmOrderPublisher;
 import com.laolu.train.business.req.ConfirmOrderDoReq;
 import com.laolu.train.business.req.ConfirmOrderTicketReq;
 import com.laolu.train.common.context.LoginMemberContext;
@@ -19,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
@@ -29,47 +29,46 @@ public class BeforeConfirmOrderService {
     private static final Logger LOG = LoggerFactory.getLogger(BeforeConfirmOrderService.class);
 
     @Resource
-    private ConfirmOrderMapper confirmOrderMapper;
+    private ConfirmOrderPublisher confirmOrderPublisher;
 
-    @Resource
-    private ConfirmOrderService confirmOrderService;
 
+    @Transactional
     @SentinelResource(value = "beforeDoConfirm", blockHandler = "beforeDoConfirmBlock")
     public Long beforeDoConfirm(ConfirmOrderDoReq req) {
         Long id = null;
-        // 根据前端传值，加入排队人数
-        for (int i = 0; i < req.getLineNumber() + 1; i++) {
-            req.setMemberId(LoginMemberContext.getId());
+        try {
+            // 根据前端传值，加入排队人数
+            for (int i = 0; i < req.getLineNumber() + 1; i++) {
+                req.setMemberId(LoginMemberContext.getId());
 
-            Date date = req.getDate();
-            String trainCode = req.getTrainCode();
-            String start = req.getStart();
-            String end = req.getEnd();
-            List<ConfirmOrderTicketReq> tickets = req.getTickets();
+                Date date = req.getDate();
+                String trainCode = req.getTrainCode();
+                String start = req.getStart();
+                String end = req.getEnd();
+                List<ConfirmOrderTicketReq> tickets = req.getTickets();
 
-            // 保存确认订单表，状态初始
-            DateTime now = DateTime.now();
-            ConfirmOrder confirmOrder = new ConfirmOrder();
-            confirmOrder.setId(SnowUtil.getSnowflakeNextId());
-            confirmOrder.setCreateTime(now);
-            confirmOrder.setUpdateTime(now);
-            confirmOrder.setMemberId(req.getMemberId());
-            confirmOrder.setDate(date);
-            confirmOrder.setTrainCode(trainCode);
-            confirmOrder.setStart(start);
-            confirmOrder.setEnd(end);
-            confirmOrder.setDailyTrainTicketId(req.getDailyTrainTicketId());
-            confirmOrder.setStatus(ConfirmOrderStatusEnum.INIT.getCode());
-            confirmOrder.setTickets(JSON.toJSONString(tickets));
-            confirmOrderMapper.insert(confirmOrder);
+                // 初始化订单表，发送到mq中
+                DateTime now = DateTime.now();
+                ConfirmOrder confirmOrder = new ConfirmOrder();
+                confirmOrder.setId(SnowUtil.getSnowflakeNextId());
+                confirmOrder.setCreateTime(now);
+                confirmOrder.setUpdateTime(now);
+                confirmOrder.setMemberId(req.getMemberId());
+                confirmOrder.setDate(date);
+                confirmOrder.setTrainCode(trainCode);
+                confirmOrder.setStart(start);
+                confirmOrder.setEnd(end);
+                confirmOrder.setDailyTrainTicketId(req.getDailyTrainTicketId());
+                confirmOrder.setStatus(ConfirmOrderStatusEnum.INIT.getCode());
+                confirmOrder.setTickets(JSON.toJSONString(tickets));
+                confirmOrder.setLogId(MDC.get("LOG_ID"));
 
-            // 发送异步线程排队购票
-            ConfirmOrderMQDto confirmOrderMQDto = new ConfirmOrderMQDto();
-            confirmOrderMQDto.setDate(req.getDate());
-            confirmOrderMQDto.setTrainCode(req.getTrainCode());
-            confirmOrderMQDto.setLogId(MDC.get("LOG_ID"));
-            confirmOrderService.doConfirm(confirmOrderMQDto);
-            id = confirmOrder.getId();
+                // 将消息发布到mq中
+                confirmOrderPublisher.publish(confirmOrder);
+                id = confirmOrder.getId();
+            }
+        } catch (Exception e) {
+            throw new BusinessException(BusinessExceptionEnum.CONFIRM_ORDER_EXCEPTION);
         }
         return id;
     }

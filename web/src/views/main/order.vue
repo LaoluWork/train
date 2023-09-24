@@ -146,9 +146,8 @@
         <loading-outlined /> 系统正在处理中...
       </div>
       <div v-show="confirmOrderLineCount >= 0">
-        您前面还有&nbsp;
-        <span class="order-train-ticket-main">{{confirmOrderLineCount}}</span>&nbsp;
-        位用户在购票，排队中，请稍候
+<!--        <span class="order-train-ticket-main">{{confirmOrderLineCount}}</span>&nbsp;-->
+        正在排队出票中，请耐心等待...
       </div>
     </div>
     <br/>
@@ -437,7 +436,7 @@ export default defineComponent({
             notification.error({description: data.message});
           }
         });
-      }, 500);
+      }, 1000);
     };
 
     /* ------------------- 第二层验证码 --------------------- */

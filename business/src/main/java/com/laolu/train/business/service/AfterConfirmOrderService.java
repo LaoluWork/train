@@ -10,6 +10,8 @@ import com.laolu.train.business.mapper.ConfirmOrderMapper;
 import com.laolu.train.business.mapper.DailyTrainSeatMapper;
 import com.laolu.train.business.mapper.cust.DailyTrainTicketMapperCust;
 import com.laolu.train.business.req.ConfirmOrderTicketReq;
+import com.laolu.train.common.exception.BusinessException;
+import com.laolu.train.common.exception.BusinessExceptionEnum;
 import com.laolu.train.common.req.MemberTicketReq;
 import com.laolu.train.common.resp.CommonResp;
 import io.seata.core.context.RootContext;
@@ -47,7 +49,7 @@ public class AfterConfirmOrderService {
      */
 //    @Transactional
     @GlobalTransactional
-    public void afterDoConfirm(DailyTrainTicket dailyTrainTicket, List<DailyTrainSeat> finalSeatList, List<ConfirmOrderTicketReq> tickets, ConfirmOrder confirmOrder) throws Exception {
+    public void afterDoConfirm(DailyTrainTicket dailyTrainTicket, List<DailyTrainSeat> finalSeatList, List<ConfirmOrderTicketReq> tickets, ConfirmOrder confirmOrder) {
         LOG.info("seata全局事务ID: {}", RootContext.getXID());
         for (int j = 0; j < finalSeatList.size(); j++) {
             DailyTrainSeat dailyTrainSeat = finalSeatList.get(j);
@@ -122,6 +124,9 @@ public class AfterConfirmOrderService {
             memberTicketReq.setSeatType(dailyTrainSeat.getSeatType());
             CommonResp<Object> commonResp = memberFeign.save(memberTicketReq);
             LOG.info("调用member接口，返回：{}", commonResp);
+            if (commonResp == null) {
+                throw new BusinessException(BusinessExceptionEnum.MEMBER_SAVE_TICKET_EXCEPTION);
+            }
 
             // 更新订单状态为成功
             ConfirmOrder confirmOrderForUpdate = new ConfirmOrder();

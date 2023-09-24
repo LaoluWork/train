@@ -22,6 +22,12 @@
             <artifactId>common</artifactId>
         </dependency>
 
+        <!-- 引入RabbitMQ -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-amqp</artifactId>
+        </dependency>
+
         <!--远程调用openfeign-->
         <dependency>
             <groupId>org.springframework.cloud</groupId>

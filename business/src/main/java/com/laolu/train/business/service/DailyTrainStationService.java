@@ -51,6 +51,7 @@ public class DailyTrainStationService {
         }
     }
 
+    //    @Cacheable(value = "DailyTrainStationService.queryList",  condition = "#req.trainCode == 'D1'")
     public PageResp<DailyTrainStationQueryResp> queryList(DailyTrainStationQueryReq req) {
         DailyTrainStationExample dailyTrainStationExample = new DailyTrainStationExample();
         dailyTrainStationExample.setOrderByClause("date desc, train_code asc, `index` asc");

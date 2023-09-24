@@ -10,12 +10,15 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cloud.openfeign.EnableFeignClients;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ThreadPoolExecutor;
 
 @SpringBootApplication
 @ComponentScan("com.laolu")
@@ -36,6 +39,20 @@ public class BusinessApplication {
         // 初始化限流规则
 //        initFlowRules();
 //        LOG.info("已初始化完限流规则");
+    }
+
+    @Bean
+    public ThreadPoolTaskExecutor threadPoolTaskExecutor() {
+        ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
+        taskExecutor.setBeanName("My-BuyTicket-ThreadPool");
+        taskExecutor.setThreadNamePrefix("BuyTicket_Thread-");
+        taskExecutor.setMaxPoolSize(30);
+        taskExecutor.setCorePoolSize(12);
+        taskExecutor.setQueueCapacity(30 * 10000);
+        taskExecutor.setKeepAliveSeconds(60);
+        // 直接拒绝策略，因为很大情况下都会被前面已经进入队列的线程所消费购票
+        taskExecutor.setRejectedExecutionHandler(new ThreadPoolExecutor.DiscardPolicy());
+        return taskExecutor;
     }
 
     private static void initFlowRules(){
